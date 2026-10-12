@@ -3,27 +3,26 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import AppHeader from '../components/AppHeader';
 import AppButton from '../components/AppButton';
 import MenuItemCard from '../components/MenuItemCard';
-import { MenuItem } from '../types';
-import { colors, fontSizes, radius, spacing } from '../theme';
+import StatusBanner from '../components/StatusBanner';
+import { useMenu } from '../context/MenuContext';
+import { colors, fontSizes, spacing } from '../theme';
 
 interface MenuListScreenProps {
-  menuItems: MenuItem[];
   successMessage: string | null;
   onAddPress: () => void;
 }
 
 // Screen 1 (Home): shows every menu item that has been added, or a friendly message when the menu is empty.
-export default function MenuListScreen({ menuItems, successMessage, onAddPress }: MenuListScreenProps) {
+export default function MenuListScreen({ successMessage, onAddPress }: MenuListScreenProps) {
+  const { menuItems } = useMenu();
+
   return (
     <View style={styles.screen}>
       <AppHeader title="Chef's Menu Manager" subtitle="Manage your restaurant dishes" />
 
       {/* Confirmation banner shown after a dish has been saved */}
       {successMessage ? (
-        <View style={styles.successBanner} accessibilityLiveRegion="polite">
-          <Text style={styles.successTitle}>Menu item added</Text>
-          <Text style={styles.successText}>{successMessage}</Text>
-        </View>
+        <StatusBanner type="success" title="Menu item added" message={successMessage} style={styles.banner} />
       ) : null}
 
       {/* FlatList re-renders automatically whenever the menuItems array changes */}
@@ -60,24 +59,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  successBanner: {
-    backgroundColor: colors.successBackground,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.success,
-    borderRadius: radius,
+  banner: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.md,
-    padding: spacing.md,
-  },
-  successTitle: {
-    fontSize: fontSizes.label,
-    fontWeight: '700',
-    color: colors.success,
-  },
-  successText: {
-    marginTop: 2,
-    fontSize: fontSizes.label,
-    color: colors.text,
   },
   listContent: {
     padding: spacing.lg,

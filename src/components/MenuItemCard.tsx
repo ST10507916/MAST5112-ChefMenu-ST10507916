@@ -1,15 +1,11 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MenuItem } from '../types';
+import { formatPrice } from '../utils/format';
 import { colors, courseColors, fontSizes, radius, spacing } from '../theme';
 
 interface MenuItemCardProps {
   item: MenuItem;
-}
-
-// Formats a price in South African Rand, for example 185 becomes "R185.00".
-export function formatPrice(price: number): string {
-  return `R${price.toFixed(2)}`;
 }
 
 // One row in the menu list: dish initial, name, course badge, description and price.
