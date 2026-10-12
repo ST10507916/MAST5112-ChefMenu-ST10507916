@@ -5,6 +5,7 @@ import AppHeader from '../components/AppHeader';
 import AppButton from '../components/AppButton';
 import FormField from '../components/FormField';
 import StatusBanner from '../components/StatusBanner';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { COURSES, Course, MenuItem } from '../types';
 import {
   FormErrors,
@@ -18,16 +19,44 @@ import {
 import { colors, fontSizes, radius, spacing } from '../theme';
 
 interface MenuItemFormScreenProps {
+  initialItem?: MenuItem; // provided when editing an existing dish
+  existingNames: string[]; // names of the other dishes, to prevent duplicates
   onSave: (item: MenuItem) => void;
   onCancel: () => void;
 }
 
 const EMPTY_FORM: MenuItemFormValues = { dishName: '', description: '', course: '', price: '' };
 
-// Screen 2: the form the chef uses to capture a dish.
-export default function MenuItemFormScreen({ onSave, onCancel }: MenuItemFormScreenProps) {
-  const [values, setValues] = useState<MenuItemFormValues>(EMPTY_FORM);
+function toFormValues(item?: MenuItem): MenuItemFormValues {
+  if (!item) return EMPTY_FORM;
+  return {
+    dishName: item.dishName,
+    description: item.description,
+    course: item.course,
+    price: item.price.toFixed(2),
+  };
+}
+
+// Screen 2: one form for both adding a new dish and editing an existing one.
+export default function MenuItemFormScreen({ initialItem, existingNames, onSave, onCancel }: MenuItemFormScreenProps) {
+  const isEditing = initialItem !== undefined;
+  const [startingValues] = useState<MenuItemFormValues>(() => toFormValues(initialItem));
+  const [values, setValues] = useState<MenuItemFormValues>(startingValues);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [discardVisible, setDiscardVisible] = useState(false);
+
+  const hasChanges = (Object.keys(values) as (keyof MenuItemFormValues)[]).some(
+    (field) => values[field] !== startingValues[field],
+  );
+
+  // Ask before throwing away typed changes; leave straight away if nothing was changed.
+  const handleCancel = () => {
+    if (hasChanges) {
+      setDiscardVisible(true);
+    } else {
+      onCancel();
+    }
+  };
 
   // Updates one field and clears its error as soon as the chef starts correcting it.
   const updateField = <K extends keyof MenuItemFormValues>(field: K, value: MenuItemFormValues[K]) => {
@@ -38,14 +67,15 @@ export default function MenuItemFormScreen({ onSave, onCancel }: MenuItemFormScr
   };
 
   const handleSave = () => {
-    const formErrors = validateMenuItem(values);
+    const formErrors = validateMenuItem(values, existingNames);
     setErrors(formErrors);
     if (countErrors(formErrors) > 0) {
       return;
     }
 
     onSave({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      // Keep the same id when editing so the existing dish is updated, not duplicated.
+      id: initialItem?.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       dishName: values.dishName.trim(),
       description: values.description.trim(),
       course: values.course as Course,
@@ -57,7 +87,11 @@ export default function MenuItemFormScreen({ onSave, onCancel }: MenuItemFormScr
 
   return (
     <View style={styles.screen}>
-      <AppHeader title="Add Menu Item" subtitle="Enter the dish details below" onBack={onCancel} />
+      <AppHeader
+        title={isEditing ? 'Edit Menu Item' : 'Add Menu Item'}
+        subtitle={isEditing ? 'Update the dish details below' : 'Enter the dish details below'}
+        onBack={handleCancel}
+      />
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.form} keyboardShouldPersistTaps="handled">
@@ -130,11 +164,25 @@ export default function MenuItemFormScreen({ onSave, onCancel }: MenuItemFormScr
           </FormField>
 
           <View style={styles.buttons}>
-            <AppButton label="Save Menu Item" onPress={handleSave} />
-            <AppButton label="Cancel" onPress={onCancel} variant="secondary" style={styles.cancelButton} />
+            <AppButton label={isEditing ? 'Save Changes' : 'Save Menu Item'} onPress={handleSave} />
+            <AppButton label="Cancel" onPress={handleCancel} variant="secondary" style={styles.cancelButton} />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ConfirmDialog
+        visible={discardVisible}
+        title="Discard changes?"
+        message="The details you entered have not been saved."
+        confirmLabel="Discard"
+        cancelLabel="Keep editing"
+        destructive
+        onCancel={() => setDiscardVisible(false)}
+        onConfirm={() => {
+          setDiscardVisible(false);
+          onCancel();
+        }}
+      />
     </View>
   );
 }

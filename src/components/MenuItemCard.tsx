@@ -1,19 +1,26 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MenuItem } from '../types';
 import { formatPrice } from '../utils/format';
 import { colors, courseColors, fontSizes, radius, spacing } from '../theme';
 
 interface MenuItemCardProps {
   item: MenuItem;
+  onPress: () => void;
 }
 
-// One row in the menu list: dish initial, name, course badge, description and price.
-export default function MenuItemCard({ item }: MenuItemCardProps) {
+// One row in the menu list. Tapping it opens the Dish Details screen.
+export default function MenuItemCard({ item, onPress }: MenuItemCardProps) {
   const badge = courseColors[item.course];
 
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.dishName}, ${item.course}, ${formatPrice(item.price)}. Open details.`}
+    >
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>{item.dishName.charAt(0).toUpperCase()}</Text>
       </View>
@@ -34,13 +41,16 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
           {item.description}
         </Text>
       </View>
-    </View>
+
+      <Text style={styles.chevron}>{'›'}</Text>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
@@ -58,6 +68,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
+    alignSelf: 'flex-start',
   },
   avatarText: {
     fontSize: fontSizes.heading,
@@ -100,5 +111,10 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.label,
     lineHeight: 20,
     color: colors.textMuted,
+  },
+  chevron: {
+    marginLeft: spacing.sm,
+    fontSize: 24,
+    color: colors.placeholder,
   },
 });

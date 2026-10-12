@@ -19,7 +19,8 @@ export function normalisePrice(value: string): string {
   return value.trim().replace(',', '.');
 }
 
-export function validateMenuItem(values: MenuItemFormValues): FormErrors {
+// existingNames: the names of the other dishes on the menu, used to stop duplicates.
+export function validateMenuItem(values: MenuItemFormValues, existingNames: string[] = []): FormErrors {
   const errors: FormErrors = {};
   const name = values.dishName.trim();
   const price = normalisePrice(values.price);
@@ -28,6 +29,8 @@ export function validateMenuItem(values: MenuItemFormValues): FormErrors {
     errors.dishName = 'Please enter the dish name.';
   } else if (name.length < 2) {
     errors.dishName = 'The dish name must be at least 2 characters.';
+  } else if (existingNames.some((existing) => existing.trim().toLowerCase() === name.toLowerCase())) {
+    errors.dishName = `${name} is already on the menu. Please use a different name.`;
   }
 
   if (values.description.trim().length === 0) {

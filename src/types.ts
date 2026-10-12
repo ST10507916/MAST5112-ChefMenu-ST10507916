@@ -14,5 +14,11 @@ export interface MenuItem {
   price: number;
 }
 
-// The screens the app can show in this version.
-export type Screen = 'list' | 'add';
+// The course filter on the menu list: one course, or every course.
+export type CourseFilter = Course | 'All';
+
+// The screen currently on display. Details and edit need to know which dish they are showing.
+export type Route =
+  | { name: 'list' }
+  | { name: 'details'; itemId: string }
+  | { name: 'form'; itemId?: string }; // no itemId means "add a new dish"

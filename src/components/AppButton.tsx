@@ -2,27 +2,25 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, ViewStyle } from 'react-native';
 import { colors, fontSizes, radius, spacing } from '../theme';
 
+type ButtonVariant = 'primary' | 'secondary' | 'danger';
+
 interface AppButtonProps {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary';
+  variant?: ButtonVariant;
   style?: ViewStyle;
 }
 
-// One button style used across the app: a filled navy primary button and an outlined secondary one.
+// One button style used across the app: filled navy primary, outlined secondary, and red danger for deleting.
 export default function AppButton({ label, onPress, variant = 'primary', style }: AppButtonProps) {
-  const isPrimary = variant === 'primary';
-
   return (
     <TouchableOpacity
       onPress={onPress}
       activeOpacity={0.8}
       accessibilityRole="button"
-      style={[styles.base, isPrimary ? styles.primary : styles.secondary, style]}
+      style={[styles.base, containerStyles[variant], style]}
     >
-      <Text style={[styles.label, isPrimary ? styles.primaryLabel : styles.secondaryLabel]}>
-        {label}
-      </Text>
+      <Text style={[styles.label, labelStyles[variant]]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -35,6 +33,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  label: {
+    fontSize: fontSizes.body,
+    fontWeight: '700',
+  },
+});
+
+const containerStyles = StyleSheet.create({
   primary: {
     backgroundColor: colors.primary,
   },
@@ -43,14 +48,21 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: colors.primary,
   },
-  label: {
-    fontSize: fontSizes.body,
-    fontWeight: '700',
+  danger: {
+    backgroundColor: colors.surface,
+    borderWidth: 1.5,
+    borderColor: colors.error,
   },
-  primaryLabel: {
+});
+
+const labelStyles = StyleSheet.create({
+  primary: {
     color: colors.primaryText,
   },
-  secondaryLabel: {
+  secondary: {
     color: colors.primary,
+  },
+  danger: {
+    color: colors.error,
   },
 });
