@@ -6,7 +6,8 @@ import AppButton from '../components/AppButton';
 import FormField from '../components/FormField';
 import StatusBanner from '../components/StatusBanner';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { COURSES, Course, MenuItem } from '../types';
+import { Course, MenuItem } from '../types';
+import { COURSES } from '../constants/courses';
 import {
   FormErrors,
   MAX_DESCRIPTION_LENGTH,
@@ -16,6 +17,7 @@ import {
   normalisePrice,
   validateMenuItem,
 } from '../utils/validation';
+import { createId } from '../utils/id';
 import { colors, fontSizes, radius, spacing } from '../theme';
 
 interface MenuItemFormScreenProps {
@@ -75,7 +77,7 @@ export default function MenuItemFormScreen({ initialItem, existingNames, onSave,
 
     onSave({
       // Keep the same id when editing so the existing dish is updated, not duplicated.
-      id: initialItem?.id ?? `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: initialItem?.id ?? createId(),
       dishName: values.dishName.trim(),
       description: values.description.trim(),
       course: values.course as Course,

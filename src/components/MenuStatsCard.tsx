@@ -2,7 +2,8 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MenuStats } from '../utils/menuStats';
 import { formatPrice } from '../utils/format';
-import { colors, courseColors, fontSizes, radius, spacing } from '../theme';
+import { cardStyle } from './Card';
+import { colors, courseColors, fontSizes, spacing } from '../theme';
 
 interface MenuStatsCardProps {
   stats: MenuStats;
@@ -45,11 +46,7 @@ export default function MenuStatsCard({ stats }: MenuStatsCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius,
-    padding: spacing.md,
+    ...cardStyle,
     marginBottom: spacing.lg,
   },
   summaryRow: {

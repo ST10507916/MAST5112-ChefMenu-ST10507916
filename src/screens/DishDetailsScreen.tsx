@@ -3,9 +3,11 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import AppHeader from '../components/AppHeader';
 import AppButton from '../components/AppButton';
 import ConfirmDialog from '../components/ConfirmDialog';
+import Card from '../components/Card';
+import CourseBadge from '../components/CourseBadge';
 import { MenuItem } from '../types';
 import { formatPrice } from '../utils/format';
-import { colors, courseColors, fontSizes, radius, spacing } from '../theme';
+import { colors, fontSizes, spacing } from '../theme';
 
 interface DishDetailsScreenProps {
   item: MenuItem;
@@ -17,17 +19,14 @@ interface DishDetailsScreenProps {
 // Screen 3: the full details of one dish, with Edit and Delete buttons (from the Part 1 wireframe).
 export default function DishDetailsScreen({ item, onBack, onEdit, onDelete }: DishDetailsScreenProps) {
   const [confirmVisible, setConfirmVisible] = useState(false);
-  const badge = courseColors[item.course];
 
   return (
     <View style={styles.screen}>
       <AppHeader title="Dish Details" subtitle="View, edit or remove this dish" onBack={onBack} />
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.card}>
-          <View style={[styles.badge, { backgroundColor: badge.background }]}>
-            <Text style={[styles.badgeText, { color: badge.text }]}>{item.course}</Text>
-          </View>
+        <Card style={styles.card}>
+          <CourseBadge course={item.course} />
           <Text style={styles.dishName}>{item.dishName}</Text>
           <Text style={styles.price}>{formatPrice(item.price)}</Text>
 
@@ -35,7 +34,7 @@ export default function DishDetailsScreen({ item, onBack, onEdit, onDelete }: Di
 
           <Text style={styles.sectionLabel}>Description</Text>
           <Text style={styles.description}>{item.description}</Text>
-        </View>
+        </Card>
 
         <View style={styles.actions}>
           <AppButton label="Edit Menu Item" onPress={onEdit} />
@@ -69,21 +68,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   card: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius,
     padding: spacing.lg,
-  },
-  badge: {
-    alignSelf: 'flex-start',
-    borderRadius: 10,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-  },
-  badgeText: {
-    fontSize: fontSizes.small,
-    fontWeight: '600',
   },
   dishName: {
     marginTop: spacing.sm,

@@ -1,5 +1,6 @@
 // Works out the menu statistics shown on the home screen.
-import { COURSES, Course, MenuItem } from '../types';
+import { Course, MenuItem } from '../types';
+import { COURSES } from '../constants/courses';
 
 export interface CourseStats {
   course: Course;

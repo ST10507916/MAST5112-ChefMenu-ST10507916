@@ -2,7 +2,9 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MenuItem } from '../types';
 import { formatPrice } from '../utils/format';
-import { colors, courseColors, fontSizes, radius, spacing } from '../theme';
+import { cardStyle } from './Card';
+import CourseBadge from './CourseBadge';
+import { colors, fontSizes, spacing } from '../theme';
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -11,8 +13,6 @@ interface MenuItemCardProps {
 
 // One row in the menu list. Tapping it opens the Dish Details screen.
 export default function MenuItemCard({ item, onPress }: MenuItemCardProps) {
-  const badge = courseColors[item.course];
-
   return (
     <TouchableOpacity
       style={styles.card}
@@ -33,9 +33,7 @@ export default function MenuItemCard({ item, onPress }: MenuItemCardProps) {
           <Text style={styles.price}>{formatPrice(item.price)}</Text>
         </View>
 
-        <View style={[styles.badge, { backgroundColor: badge.background }]}>
-          <Text style={[styles.badgeText, { color: badge.text }]}>{item.course}</Text>
-        </View>
+        <CourseBadge course={item.course} style={styles.badge} />
 
         <Text style={styles.description} numberOfLines={2}>
           {item.description}
@@ -49,13 +47,9 @@ export default function MenuItemCard({ item, onPress }: MenuItemCardProps) {
 
 const styles = StyleSheet.create({
   card: {
+    ...cardStyle,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius,
-    padding: spacing.md,
     marginBottom: spacing.md,
   },
   avatar: {
@@ -96,15 +90,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   badge: {
-    alignSelf: 'flex-start',
-    borderRadius: 10,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
     marginTop: spacing.xs,
-  },
-  badgeText: {
-    fontSize: fontSizes.small,
-    fontWeight: '600',
   },
   description: {
     marginTop: spacing.sm,

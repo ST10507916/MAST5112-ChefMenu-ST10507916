@@ -1,15 +1,8 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { CourseFilter } from '../types';
+import { COURSE_FILTERS } from '../constants/courses';
 import { colors, fontSizes, spacing } from '../theme';
-
-// Chip labels match the Part 1 wireframe.
-const FILTERS: { label: string; value: CourseFilter }[] = [
-  { label: 'All', value: 'All' },
-  { label: 'Starters', value: 'Starter' },
-  { label: 'Mains', value: 'Main Course' },
-  { label: 'Desserts', value: 'Dessert' },
-];
 
 interface CourseFilterChipsProps {
   selected: CourseFilter;
@@ -20,7 +13,7 @@ interface CourseFilterChipsProps {
 export default function CourseFilterChips({ selected, onSelect }: CourseFilterChipsProps) {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
-      {FILTERS.map(({ label, value }) => {
+      {COURSE_FILTERS.map(({ label, value }) => {
         const isActive = selected === value;
         return (
           <TouchableOpacity
