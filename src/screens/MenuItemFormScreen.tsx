@@ -10,7 +10,12 @@ import { Course, MenuItem } from '../types';
 import { COURSES } from '../constants/courses';
 import {
   FormErrors,
+  FormFieldName,
   MAX_DESCRIPTION_LENGTH,
+  MAX_PRICE,
+  MIN_DESCRIPTION_LENGTH,
+  cleanText,
+  validateField,
   MAX_NAME_LENGTH,
   MenuItemFormValues,
   countErrors,
@@ -18,6 +23,7 @@ import {
   validateMenuItem,
 } from '../utils/validation';
 import { createId } from '../utils/id';
+import { formatPrice } from '../utils/format';
 import { colors, fontSizes, radius, spacing } from '../theme';
 
 interface MenuItemFormScreenProps {
@@ -68,6 +74,14 @@ export default function MenuItemFormScreen({ initialItem, existingNames, onSave,
     }
   };
 
+  // Checks a field as soon as the chef leaves it, so mistakes show up before pressing Save.
+  // Empty fields are only flagged on Save, so the form does not fill with errors while tabbing through.
+  const checkFieldOnBlur = (field: FormFieldName) => {
+    if (values[field].trim().length === 0) return;
+    const message = validateField(field, values, existingNames);
+    setErrors((prev) => ({ ...prev, [field]: message }));
+  };
+
   const handleSave = () => {
     const formErrors = validateMenuItem(values, existingNames);
     setErrors(formErrors);
@@ -78,10 +92,11 @@ export default function MenuItemFormScreen({ initialItem, existingNames, onSave,
     onSave({
       // Keep the same id when editing so the existing dish is updated, not duplicated.
       id: initialItem?.id ?? createId(),
-      dishName: values.dishName.trim(),
-      description: values.description.trim(),
+      dishName: cleanText(values.dishName),
+      description: cleanText(values.description),
       course: values.course as Course,
       price: parseFloat(normalisePrice(values.price)),
+      createdAt: initialItem?.createdAt ?? Date.now(),
     });
   };
 
@@ -112,6 +127,7 @@ export default function MenuItemFormScreen({ initialItem, existingNames, onSave,
               placeholderTextColor={colors.placeholder}
               value={values.dishName}
               onChangeText={(text) => updateField('dishName', text)}
+              onBlur={() => checkFieldOnBlur('dishName')}
               maxLength={MAX_NAME_LENGTH}
               autoCapitalize="words"
             />
@@ -121,7 +137,7 @@ export default function MenuItemFormScreen({ initialItem, existingNames, onSave,
             label="Description"
             required
             error={errors.description}
-            helper={`${values.description.length}/${MAX_DESCRIPTION_LENGTH}`}
+            helper={`Min ${MIN_DESCRIPTION_LENGTH}, ${values.description.length}/${MAX_DESCRIPTION_LENGTH}`}
           >
             <TextInput
               style={[styles.input, styles.multiline, errors.description ? styles.inputError : null]}
@@ -129,6 +145,7 @@ export default function MenuItemFormScreen({ initialItem, existingNames, onSave,
               placeholderTextColor={colors.placeholder}
               value={values.description}
               onChangeText={(text) => updateField('description', text)}
+              onBlur={() => checkFieldOnBlur('description')}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -153,13 +170,14 @@ export default function MenuItemFormScreen({ initialItem, existingNames, onSave,
             </View>
           </FormField>
 
-          <FormField label="Price (R)" required error={errors.price}>
+          <FormField label="Price (R)" required error={errors.price} helper={errors.price ? undefined : `Up to ${formatPrice(MAX_PRICE)}`}>
             <TextInput
               style={[styles.input, errors.price ? styles.inputError : null]}
               placeholder="e.g. 185.00"
               placeholderTextColor={colors.placeholder}
               value={values.price}
               onChangeText={(text) => updateField('price', text)}
+              onBlur={() => checkFieldOnBlur('price')}
               keyboardType="numeric"
               maxLength={8}
             />

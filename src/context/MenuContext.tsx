@@ -11,7 +11,8 @@ type MenuAction =
   | { type: 'LOAD'; items: MenuItem[] }
   | { type: 'ADD'; item: MenuItem }
   | { type: 'UPDATE'; item: MenuItem }
-  | { type: 'DELETE'; id: string };
+  | { type: 'DELETE'; id: string }
+  | { type: 'RESTORE'; item: MenuItem; index: number };
 
 interface MenuState {
   items: MenuItem[];
@@ -31,9 +32,22 @@ function menuReducer(state: MenuState, action: MenuAction): MenuState {
       };
     case 'DELETE':
       return { ...state, items: state.items.filter((item) => item.id !== action.id) };
+    case 'RESTORE': {
+      // Puts an undone deletion back in the same place it was removed from.
+      if (state.items.some((item) => item.id === action.item.id)) return state;
+      const items = [...state.items];
+      items.splice(Math.min(action.index, items.length), 0, action.item);
+      return { ...state, items };
+    }
     default:
       return state;
   }
+}
+
+// What is kept after a deletion so it can be undone.
+export interface DeletedItem {
+  item: MenuItem;
+  index: number;
 }
 
 interface MenuContextValue {
@@ -41,7 +55,8 @@ interface MenuContextValue {
   isLoaded: boolean;
   addMenuItem: (item: MenuItem) => void;
   updateMenuItem: (item: MenuItem) => void;
-  deleteMenuItem: (id: string) => void;
+  deleteMenuItem: (id: string) => DeletedItem | undefined;
+  restoreMenuItem: (deleted: DeletedItem) => void;
   getMenuItem: (id: string) => MenuItem | undefined;
 }
 
@@ -77,7 +92,13 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     isLoaded: state.isLoaded,
     addMenuItem: (item) => dispatch({ type: 'ADD', item }),
     updateMenuItem: (item) => dispatch({ type: 'UPDATE', item }),
-    deleteMenuItem: (id) => dispatch({ type: 'DELETE', id }),
+    deleteMenuItem: (id) => {
+      const index = state.items.findIndex((item) => item.id === id);
+      if (index === -1) return undefined;
+      dispatch({ type: 'DELETE', id });
+      return { item: state.items[index], index };
+    },
+    restoreMenuItem: ({ item, index }) => dispatch({ type: 'RESTORE', item, index }),
     getMenuItem: (id) => state.items.find((item) => item.id === id),
   };
 

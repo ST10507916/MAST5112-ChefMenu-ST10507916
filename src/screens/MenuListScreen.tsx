@@ -1,34 +1,49 @@
-import React, { useMemo } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import AppHeader from '../components/AppHeader';
 import AppButton from '../components/AppButton';
 import MenuItemCard from '../components/MenuItemCard';
 import StatusBanner from '../components/StatusBanner';
 import SearchBar from '../components/SearchBar';
 import CourseFilterChips from '../components/CourseFilterChips';
-import MenuStatsCard from '../components/MenuStatsCard';
-import { useMenu } from '../context/MenuContext';
+import StatsSummary from '../components/StatsSummary';
 import EmptyState from '../components/EmptyState';
+import OptionSheet from '../components/OptionSheet';
+import { useMenu } from '../context/MenuContext';
 import { useMenuFilters } from '../hooks/useMenuFilters';
 import { getMenuStats } from '../utils/menuStats';
-import { colors, fontSizes, spacing } from '../theme';
+import { SORT_OPTIONS, getSortLabel } from '../utils/sortMenu';
+import { colors, fontSizes, radius, spacing } from '../theme';
 
 export interface BannerMessage {
   title: string;
   message: string;
+  actionLabel?: string; // for example "Undo"
+  onAction?: () => void;
 }
 
 interface MenuListScreenProps {
   banner: BannerMessage | null;
   onAddPress: () => void;
   onItemPress: (itemId: string) => void;
+  onStatsPress: () => void;
 }
 
-// Screen 1 (Home): menu statistics, search, course filter and the list of dishes.
-export default function MenuListScreen({ banner, onAddPress, onItemPress }: MenuListScreenProps) {
+// Screen 1 (Home): statistics summary, search, course filter, sorting and the list of dishes.
+export default function MenuListScreen({ banner, onAddPress, onItemPress, onStatsPress }: MenuListScreenProps) {
   const { menuItems, isLoaded } = useMenu();
-  const { searchText, setSearchText, courseFilter, setCourseFilter, visibleItems, isFiltering, clearFilters } =
-    useMenuFilters(menuItems);
+  const {
+    searchText,
+    setSearchText,
+    courseFilter,
+    setCourseFilter,
+    sortOrder,
+    setSortOrder,
+    visibleItems,
+    isFiltering,
+    clearFilters,
+  } = useMenuFilters(menuItems);
+  const [sortSheetVisible, setSortSheetVisible] = useState(false);
   const stats = useMemo(() => getMenuStats(menuItems), [menuItems]);
 
   const hasItems = menuItems.length > 0;
@@ -38,8 +53,12 @@ export default function MenuListScreen({ banner, onAddPress, onItemPress }: Menu
     hasItems ? (
       <EmptyState
         title="No matching dishes"
-        message="No dishes match your search or filter. Try a different word or course."
-        actionLabel="Clear search and filter"
+        message={
+          searchText.trim().length > 0
+            ? `No dishes match "${searchText.trim()}"${courseFilter !== 'All' ? ` in ${courseFilter}` : ''}. Try a different word or course.`
+            : `There are no ${courseFilter} dishes on the menu yet.`
+        }
+        actionLabel="Show all dishes"
         onAction={clearFilters}
       />
     ) : (
@@ -55,7 +74,14 @@ export default function MenuListScreen({ banner, onAddPress, onItemPress }: Menu
       <AppHeader title="Chef's Menu Manager" subtitle="Manage your restaurant dishes" />
 
       {banner ? (
-        <StatusBanner type="success" title={banner.title} message={banner.message} style={styles.banner} />
+        <StatusBanner
+          type="success"
+          title={banner.title}
+          message={banner.message}
+          actionLabel={banner.actionLabel}
+          onAction={banner.onAction}
+          style={styles.banner}
+        />
       ) : null}
 
       {hasItems ? (
@@ -71,7 +97,7 @@ export default function MenuListScreen({ banner, onAddPress, onItemPress }: Menu
           <Text style={styles.loadingText}>Loading your menu...</Text>
         </View>
       ) : (
-        // FlatList re-renders automatically whenever the menu, search or filter changes.
+        // FlatList re-renders automatically whenever the menu, search, filter or sort changes.
         <FlatList
           data={visibleItems}
           keyExtractor={(item) => item.id}
@@ -81,12 +107,29 @@ export default function MenuListScreen({ banner, onAddPress, onItemPress }: Menu
           ListHeaderComponent={
             hasItems ? (
               <>
-                <MenuStatsCard stats={stats} />
-                <Text style={styles.resultCount}>
-                  {isFiltering
-                    ? `Showing ${visibleItems.length} of ${menuItems.length} dishes`
-                    : `All dishes (${menuItems.length})`}
-                </Text>
+                {!isFiltering ? <StatsSummary stats={stats} onPress={onStatsPress} /> : null}
+                <View style={styles.listToolbar}>
+                  <Text style={styles.resultCount} numberOfLines={1}>
+                    {isFiltering
+                      ? `${visibleItems.length} of ${menuItems.length} shown`
+                      : `All dishes (${menuItems.length})`}
+                  </Text>
+                  {isFiltering ? (
+                    <TouchableOpacity onPress={clearFilters} accessibilityRole="button" hitSlop={8}>
+                      <Text style={styles.clearAll}>Clear all</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  <TouchableOpacity
+                    style={styles.sortButton}
+                    onPress={() => setSortSheetVisible(true)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Sort by ${getSortLabel(sortOrder)}. Change sort order.`}
+                  >
+                    <Text style={styles.sortText}>
+                      Sort: {getSortLabel(sortOrder)} {'▾'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </>
             ) : null
           }
@@ -97,6 +140,15 @@ export default function MenuListScreen({ banner, onAddPress, onItemPress }: Menu
       <View style={styles.footer}>
         <AppButton label="+  Add New Menu Item" onPress={onAddPress} />
       </View>
+
+      <OptionSheet
+        visible={sortSheetVisible}
+        title="Sort menu items"
+        options={SORT_OPTIONS}
+        selected={sortOrder}
+        onSelect={setSortOrder}
+        onClose={() => setSortSheetVisible(false)}
+      />
     </View>
   );
 }
@@ -121,26 +173,52 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: spacing.md,
   },
+  loadingText: {
+    fontSize: fontSizes.body,
+    color: colors.textMuted,
+  },
   listContent: {
     padding: spacing.lg,
   },
   emptyListContent: {
     flexGrow: 1,
   },
+  listToolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.sm + 2,
+  },
   resultCount: {
+    flexShrink: 1,
     fontSize: fontSizes.small,
     fontWeight: '600',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
     color: colors.textMuted,
-    marginBottom: spacing.sm,
   },
-  loadingText: {
-    fontSize: fontSizes.body,
-    color: colors.textMuted,
+  clearAll: {
+    fontSize: fontSizes.small + 1,
+    fontWeight: '700',
+    color: colors.error,
+  },
+  sortButton: {
+    marginLeft: 'auto',
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.xs,
+    borderRadius: radius,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  sortText: {
+    fontSize: fontSizes.small + 1,
+    fontWeight: '600',
+    color: colors.primary,
   },
   footer: {
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.surface,
