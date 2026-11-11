@@ -1,8 +1,8 @@
 # ChefMenu Video Demonstration
 
-## ▶ Part 3 video: [PASTE_YOUR_PART_3_VIDEO_LINK_HERE](PASTE_YOUR_PART_3_VIDEO_LINK_HERE)
+## ▶ Part 3 video: [https://youtu.be/wu4LO2XqkCA](https://youtu.be/wu4LO2XqkCA)
 
-> **YouTube link (Unlisted):** PASTE_YOUR_PART_3_VIDEO_LINK_HERE
+> **YouTube link (Unlisted):** https://youtu.be/wu4LO2XqkCA
 
 | | |
 |---|---|

@@ -9,9 +9,9 @@ A React Native (Expo) mobile application that lets Christoffel, the chef, manage
 | **Student** | Theolin Chetty (ST10507916) |
 | **Lecturer** | Mr. K. Garanganga |
 | **Version** | 3.0.0 |
-| **Part 3 video demonstration** | **[PASTE_YOUR_PART_3_VIDEO_LINK_HERE](PASTE_YOUR_PART_3_VIDEO_LINK_HERE)** (see also [VIDEO_LINK.md](VIDEO_LINK.md)) |
+| **Part 3 video demonstration** | **[https://youtu.be/wu4LO2XqkCA](https://youtu.be/wu4LO2XqkCA)** (see also [VIDEO_LINK.md](VIDEO_LINK.md)) |
 
-> **Part 3 video demonstration:** [PASTE_YOUR_PART_3_VIDEO_LINK_HERE](PASTE_YOUR_PART_3_VIDEO_LINK_HERE)
+> **Part 3 video demonstration:** [https://youtu.be/wu4LO2XqkCA](https://youtu.be/wu4LO2XqkCA)
 
 ## Contents
 
